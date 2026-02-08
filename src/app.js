@@ -2,26 +2,18 @@ const express=require('express');
 
 
 const app=express();
-const {adminAuth,UserAuth}=require('./middlewares/auth');
+const {UserAuth}=require('./middlewares/auth');
 
 
-
-app.use("/admin",adminAuth);
-
-
-
-app.get("/admin/getAllData",(req,res)=>{
-    res.send("Get all data from the server!")
-});
-
-app.get("/admin/deleteUser",(req,res)=>{
-    res.send("Delete user from the server!");
-});
-
-
-
-app.get("/user",UserAuth,(req,res)=>{
-    res.send("Hello from the server!");
+app.get("/getUserData",UserAuth,(req,res)=>{
+    try{
+        res.send("User data accessed successfully");
+    }
+    catch(err){
+        console.error(err);
+        res.status(500).send("Internal Server Error");
+    }
+    
 });
 
 app.use("/test",(req,res,next)=>{
