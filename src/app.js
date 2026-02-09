@@ -22,6 +22,35 @@ app.post('/signup', async (req,res)=>{
 });
 
 
+//Get user by email
+app.get('/users', async (req,res)=>{
+      const userEmail=req.body.email;
+    try{
+        const users= await User.findOne({email:userEmail});
+        if(!users){
+            res.status(404).json({ message: 'Users not found' });
+        } else {
+            res.json(users); // Send the user data as a JSON response
+        }
+    }
+    catch(err){
+        console.error('Error fetching users:', err);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+app.get('/feed', async (req,res)=>{
+    try{
+        const users= await User.find();
+        res.json(users); // Send the user data as a JSON response
+    }
+    catch(err){
+        console.error('Error fetching users:', err);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});``
+
+
 
 connectDB().then(()=>{
     console.log('Database connected successfully');
