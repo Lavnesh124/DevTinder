@@ -1,26 +1,17 @@
 const express=require('express');
-
+const connectDB=require('./config/database'); // Connect to the database
 
 const app=express();
-const {UserAuth}=require('./middlewares/auth');
 
-
-app.get("/getUserData",UserAuth,(req,res)=>{
-    try{
-        res.send("User data accessed successfully");
-    }
-    catch(err){
-        console.error(err);
-        res.status(500).send("Internal Server Error");
-    }
-    
-});
-
-app.use("/test",(req,res,next)=>{
-   res.send("Hello from the server!");
+connectDB().then(()=>{
+    console.log('Database connected successfully');
+    app.listen(7777,()=>{
+        console.log('Server is running on port 7777');
+    });
+}).catch((err)=>{
+    console.error('Database connection failed:', err);
+    process.exit(1); // Exit the application if the database connection fails
 });
 
 
-app.listen(7777,()=>{
-    console.log('Server is running on port 7777');
-});
+
