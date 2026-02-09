@@ -1,6 +1,8 @@
 const express=require('express');
 const connectDB=require('./config/database'); // Connect to the database
 const User=require('./models/user'); // Import the User model
+const { validateSignupData } = require('./utils/validation'); // Import the validation function
+const bcrypt=require('bcrypt'); // Import bcrypt for password hashing
 const app=express();
 
 
@@ -8,8 +10,20 @@ app.use(express.json()); // Middleware to parse JSON bodies
 
 
 app.post('/signup', async (req,res)=>{
+    //Validating the Data
+    validationResult = validateSignupData(req);
+    if (!validationResult.valid) {
+        return res.status(400).json({ message: validationResult.message });
+    }
+
+    const { firstname,lastname,email,password } = req.body;
+
+    // Encrpt the password using bcrypt
+    const passwordHash=await bcrypt.hash(password,10);
+    console.log(passwordHash);
+
         //creating a new instance of User model with the data from the request body
-        const user= new User(req.body);
+        const user= new User({firstname,lastname,email,password:passwordHash});
     try{
         await user.save();  
         res.status(201).json({ message: 'User created successfully' });
