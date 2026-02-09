@@ -48,7 +48,32 @@ app.get('/feed', async (req,res)=>{
         console.error('Error fetching users:', err);
         res.status(500).json({ message: 'Internal server error' });
     }
-});``
+});
+
+app.delete('/user',async (req,res)=>{
+    const userId=req.body.userId;
+    try{
+        const deletedUser= await User.findOneAndDelete({_id:userId});  
+         res.json({ message: 'User deleted successfully', user: deletedUser});
+    }catch(err){
+        console.error('Error deleting user:', err);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});             
+
+app.patch('/user',async (req,res)=>{
+    const userId=req.body.userId;
+    const updateData=req.body.updateData;
+    try{
+        const updatedUser= await User.findOneAndUpdate({_id:userId},updateData,{new:true});  
+         res.json({ message: 'User updated successfully', user: updatedUser});
+    }catch(err){
+        console.error('Error updating user:', err);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+
 
 
 
