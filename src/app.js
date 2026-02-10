@@ -6,6 +6,9 @@ const bcrypt=require('bcrypt'); // Import bcrypt for password hashing
 const cookieParser=require('cookie-parser'); // Import cookie-parser for handling cookies
 const jwt=require('jsonwebtoken'); // Import jsonwebtoken for token handling
 const { UserAuth }=require('./middlewares/auth'); // Import the authentication middleware
+const authRouter=require('./routes/auth'); // Import the authentication routes
+const profileRouter=require('./routes/profile'); // Import the profile routes
+const requestRouter=require('./routes/request'); // Import the request routes
 
 const app=express();
 
@@ -14,68 +17,9 @@ app.use(express.json()); // Middleware to parse JSON bodies
 app.use(cookieParser()); // Middleware to parse cookies
 
 
-app.post('/signup', async (req,res)=>{
-    //Validating the Data
-    validationResult = validateSignupData(req);
-    if (!validationResult.valid) {
-        return res.status(400).json({ message: validationResult.message });
-    }
-
-    const { firstname,lastname,email,password } = req.body;
-
-    // Encrpt the password using bcrypt
-    const passwordHash=await bcrypt.hash(password,10);
-    console.log(passwordHash);
-
-        //creating a new instance of User model with the data from the request body
-        const user= new User({firstname,lastname,email,password:passwordHash});
-    try{
-        await user.save();  
-        res.status(201).json({ message: 'User created successfully' });
-    }
-    catch(err){
-        console.error('Error during signup:', err);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-
-});
-
-app.post('/login',async (req,res)=>{
-    const { email,password } = req.body;
-    try{
-        const user= await User.findOne({email:email});
-        if(!user){
-            return res.status(404).json({ message: 'User not found' });
-        }
-        const isPasswordValid=await user.validatePassword(password);
-        if(!isPasswordValid){
-            return res.status(401).json({ message: 'Invalid password' });
-        }
-        // Creating a JWT token 
-
-        const token=await user.getJWT();
-        res.cookie("token",token);
-        res.json({ message: 'Login successful' });
-    }
-    catch(err){
-        console.error('Error during login:', err);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-});
-
-app.get('/profile',UserAuth,async (req,res)=>{
-    try{
-
-        const user=req.user;
-        console.log(user);
-        res.send(user);
-    }catch(err){
-        console.error('Error fetching profile:', err);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-})
-
-
+app.use('/auth',authRouter);
+app.use('/profile',profileRouter);
+app.use('/request',requestRouter);  
 
 
 
