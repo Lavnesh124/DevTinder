@@ -3,10 +3,15 @@ const connectDB=require('./config/database'); // Connect to the database
 const User=require('./models/user'); // Import the User model
 const { validateSignupData } = require('./utils/validation'); // Import the validation function
 const bcrypt=require('bcrypt'); // Import bcrypt for password hashing
+const cookieParser=require('cookie-parser'); // Import cookie-parser for handling cookies
+const jwt=require('jsonwebtoken'); // Import jsonwebtoken for token handling
+
+
 const app=express();
 
 
 app.use(express.json()); // Middleware to parse JSON bodies
+app.use(cookieParser()); // Middleware to parse cookies
 
 
 app.post('/signup', async (req,res)=>{
@@ -46,6 +51,11 @@ app.post('/login',async (req,res)=>{
         if(!isPasswordValid){
             return res.status(401).json({ message: 'Invalid password' });
         }
+        // Creating a JWT token 
+
+        const token=await jwt.sign({ _id:user._id}, "devtinder_secret_key");
+        console.log(token);
+        res.cookie("token",token);
         res.json({ message: 'Login successful' });
     }
     catch(err){
@@ -53,6 +63,30 @@ app.post('/login',async (req,res)=>{
         res.status(500).json({ message: 'Internal server error' });
     }
 });
+
+app.get('/profile',async (req,res)=>{
+    try{
+
+        const cookies=req.cookies;
+
+        const { token }=cookies;
+
+        if(!token){
+            throw new Error('No token found in cookies');
+        }
+        //Validating the tokens
+        const decodedMessage=await jwt.verify(token,"devtinder_secret_key");
+        const { _id} =decodedMessage;
+        const user= await User.findOne({_id:_id});
+        if(!user){
+            return res.status(404).json({ message: 'User not found' });
+        }   
+        res.send(user);
+    }catch(err){
+        console.error('Error fetching profile:', err);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+})
 
 //Get user by email
 app.get('/users', async (req,res)=>{
