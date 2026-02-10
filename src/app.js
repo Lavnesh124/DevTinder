@@ -47,14 +47,13 @@ app.post('/login',async (req,res)=>{
         if(!user){
             return res.status(404).json({ message: 'User not found' });
         }
-        const isPasswordValid=await bcrypt.compare(password,user.password);
+        const isPasswordValid=await user.validatePassword(password);
         if(!isPasswordValid){
             return res.status(401).json({ message: 'Invalid password' });
         }
         // Creating a JWT token 
 
-        const token=await jwt.sign({ _id:user._id}, "devtinder_secret_key",{expiresIn:"1d"});
-        console.log(token);
+        const token=await user.getJWT();
         res.cookie("token",token);
         res.json({ message: 'Login successful' });
     }
