@@ -5,7 +5,7 @@ const { validateSignupData } = require('./utils/validation'); // Import the vali
 const bcrypt=require('bcrypt'); // Import bcrypt for password hashing
 const cookieParser=require('cookie-parser'); // Import cookie-parser for handling cookies
 const jwt=require('jsonwebtoken'); // Import jsonwebtoken for token handling
-
+const { UserAuth }=require('./middlewares/auth'); // Import the authentication middleware
 
 const app=express();
 
@@ -53,7 +53,7 @@ app.post('/login',async (req,res)=>{
         }
         // Creating a JWT token 
 
-        const token=await jwt.sign({ _id:user._id}, "devtinder_secret_key");
+        const token=await jwt.sign({ _id:user._id}, "devtinder_secret_key",{expiresIn:"1d"});
         console.log(token);
         res.cookie("token",token);
         res.json({ message: 'Login successful' });
@@ -64,23 +64,11 @@ app.post('/login',async (req,res)=>{
     }
 });
 
-app.get('/profile',async (req,res)=>{
+app.get('/profile',UserAuth,async (req,res)=>{
     try{
 
-        const cookies=req.cookies;
-
-        const { token }=cookies;
-
-        if(!token){
-            throw new Error('No token found in cookies');
-        }
-        //Validating the tokens
-        const decodedMessage=await jwt.verify(token,"devtinder_secret_key");
-        const { _id} =decodedMessage;
-        const user= await User.findOne({_id:_id});
-        if(!user){
-            return res.status(404).json({ message: 'User not found' });
-        }   
+        const user=req.user;
+        console.log(user);
         res.send(user);
     }catch(err){
         console.error('Error fetching profile:', err);
@@ -88,56 +76,6 @@ app.get('/profile',async (req,res)=>{
     }
 })
 
-//Get user by email
-app.get('/users', async (req,res)=>{
-      const userEmail=req.body.email;
-    try{
-        const users= await User.findOne({email:userEmail});
-        if(!users){
-            res.status(404).json({ message: 'Users not found' });
-        } else {
-            res.json(users); // Send the user data as a JSON response
-        }
-    }
-    catch(err){
-        console.error('Error fetching users:', err);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-});
-
-app.get('/feed', async (req,res)=>{
-    try{
-        const users= await User.find();
-        res.json(users); // Send the user data as a JSON response
-    }
-    catch(err){
-        console.error('Error fetching users:', err);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-});
-
-app.delete('/user',async (req,res)=>{
-    const userId=req.body.userId;
-    try{
-        const deletedUser= await User.findOneAndDelete({_id:userId});  
-         res.json({ message: 'User deleted successfully', user: deletedUser});
-    }catch(err){
-        console.error('Error deleting user:', err);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-});             
-
-app.patch('/user',async (req,res)=>{
-    const userId=req.body.userId;
-    const updateData=req.body.updateData;
-    try{
-        const updatedUser= await User.findOneAndUpdate({_id:userId},updateData,{new:true});  
-         res.json({ message: 'User updated successfully', user: updatedUser});
-    }catch(err){
-        console.error('Error updating user:', err);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-});
 
 
 
