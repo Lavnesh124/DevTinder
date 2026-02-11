@@ -9,6 +9,7 @@ const { UserAuth }=require('./middlewares/auth'); // Import the authentication m
 const authRouter=require('./routes/auth'); // Import the authentication routes
 const profileRouter=require('./routes/profile'); // Import the profile routes
 const requestRouter=require('./routes/request'); // Import the request routes
+const userRouter=require('./routes/user'); // Import the user routes
 
 const app=express();
 
@@ -20,7 +21,7 @@ app.use(cookieParser()); // Middleware to parse cookies
 app.use('/auth',authRouter);
 app.use('/profile',profileRouter);
 app.use('/request',requestRouter);  
-
+app.use('/user',userRouter);  
 
 
 
