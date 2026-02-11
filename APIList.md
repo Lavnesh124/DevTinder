@@ -13,10 +13,8 @@
 
    
    ## ConnectionRequestRouter
-    -POST /request/send/interested/:userId
-    -POST /request/send/ignored/:userId
-    -POST /request/review/accepted/:requestID
-    -POST /request/review/rejected/:requestID
+    -POST /request/send/:status/:userId
+    -POST /request/review/:status/:requestID
 
    ## userRouter
      -GET /user/connections

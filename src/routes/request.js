@@ -7,7 +7,7 @@ const User=require('../models/user'); // Import the User model
 
 const requestRouter=express.Router();
 
-requestRouter.get('/send/:status/:toUserId',UserAuth,async (req,res)=>{
+requestRouter.post('/send/:status/:toUserId',UserAuth,async (req,res)=>{
     try{
         const fromUserId=req.user._id;
         const toUserId=req.params.toUserId;
@@ -62,6 +62,36 @@ requestRouter.get('/send/:status/:toUserId',UserAuth,async (req,res)=>{
         console.error('Error sending interest:', err);
         res.status(500).json({ message: 'Internal server error' });
     }   
+});
+
+requestRouter.post('/review/:status/:requestId',UserAuth,async (req,res)=>{
+    try{
+        const loggedInUser=req.user;
+        const requestId=req.params.requestId;
+        const status=req.params.status;
+
+        const allowedStatus=['accepted','rejected'];
+        if(!allowedStatus.includes(status)){
+            return res.status(400).json({ message: 'Invalid status value' });
+        }
+        const connectionRequest=await ConnectionRequest.findById(
+            {
+               _id:requestId,
+               toUserId:loggedInUser._id,
+                status:'interested'
+            }
+        );
+        if(!connectionRequest){
+            return res.status(404).json({ message: 'Connection request not found' });
+        }
+        connectionRequest.status=status;
+        await connectionRequest.save();
+        res.json({ message: 'Connection request reviewed successfully',data:connectionRequest });
+
+    }catch(err){
+        console.error('Error reviewing connection request:', err);
+        res.status(500).json({ message: 'Internal server error' });
+    }
 });
 
 module.exports=requestRouter;
